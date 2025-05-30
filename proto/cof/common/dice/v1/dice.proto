@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package cof.common.dice.v1;
+
+// DiceType
+enum DiceType {
+  // DICE_TYPE_UNSPECIFIED
+  DICE_TYPE_UNSPECIFIED = 0;
+  // DICE_TYPE_3
+  DICE_TYPE_3 = 1;
+  // DICE_TYPE_4
+  DICE_TYPE_4 = 2;
+  // DICE_TYPE_6
+  DICE_TYPE_6 = 3;
+  // DICE_TYPE_8
+  DICE_TYPE_8 = 4;
+  // DICE_TYPE_10
+  DICE_TYPE_10 = 5;
+  // DICE_TYPE_12
+  DICE_TYPE_12 = 6;
+  // DICE_TYPE_20
+  DICE_TYPE_20 = 7;
+  // DICE_TYPE_100
+  DICE_TYPE_100 = 8;
+}
+
+// RolledDice
+message RolledDice {
+  // dice
+  DiceType dice = 1;
+
+  // result
+  uint32 result = 2;
+}

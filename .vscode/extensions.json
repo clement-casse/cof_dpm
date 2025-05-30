@@ -1,0 +1,7 @@
+{
+    "recommendations": [
+        "bufbuild.vscode-buf",
+        "tamasfe.even-better-toml",
+        "rust-lang.rust-analyzer"
+    ]
+}

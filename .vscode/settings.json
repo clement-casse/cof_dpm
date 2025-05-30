@@ -1,0 +1,22 @@
+{
+  "files.exclude": {
+    ".direnv/": true
+  },
+  "[proto3]": {
+    "editor.formatOnSave": true,
+    "editor.rulers": [
+      80
+    ],
+    "editor.tabSize": 2,
+    "editor.defaultFormatter": "bufbuild.vscode-buf"
+  },
+  "[rust]": {
+    "editor.defaultFormatter": "rust-lang.rust-analyzer",
+    "editor.formatOnSave": true
+  },
+  "rust-analyzer.check.command": "clippy",
+  "rust-analyzer.checkOnSave": true,
+  "rust-analyzer.imports.group.enable": true,
+  "rust-analyzer.interpret.tests": true,
+  "rust-analyzer.testExplorer": true,
+}

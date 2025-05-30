@@ -1,0 +1,47 @@
+[package]
+name = "dice_server"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+clap = { workspace = true, features = ["env"] }
+cof = { workspace = true, features = ["protobuf"] }
+log.workspace = true
+opentelemetry.workspace = true
+opentelemetry-appender-tracing = "0.30.1"
+opentelemetry-stdout = { version = "0.30.0", features = ["logs", "metrics"] }
+opentelemetry_sdk = { version = "0.30.0", features = ["logs", "metrics", "rt-tokio"] }
+sqlx = { version = "0.8.6", features = [
+  "postgres",
+  "runtime-tokio",
+  "macros",
+  "uuid",
+  "chrono",
+  "bigdecimal",
+] }
+thiserror.workspace = true
+tokio = { workspace = true, features = ["full"] }
+tonic = { workspace = true, features = [
+  "prost",
+  "router",
+  "server",
+  "channel",
+  "transport",
+] }
+tonic-reflection = "0.13.1"
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = [
+  "env-filter",
+  "registry",
+  "std",
+  "fmt",
+] }
+uuid = { version = "1.17.0", features = ["v7"] }
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+testcontainers = "0.24.0"
+testcontainers-modules = { version = "0.12.1", features = ["postgres"] }

@@ -1,0 +1,31 @@
+[package]
+name = "cof"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+async-trait = "0.1.88"
+log = { workspace = true }
+opentelemetry = { workspace = true, optional = true }
+prost = { workspace = true, optional = true }
+rand = "0.9.1"
+regex = "1.11.1"
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tonic = { workspace = true, optional = true, features = ["transport"] }
+uuid = { version = "1.17.0", features = ["v7"] }
+
+[build-dependencies]
+tonic-build = { workspace = true, optional = true }
+
+[dev-dependencies]
+mockall = "0.13.1"
+
+[features]
+default = ["protobuf", "opentelemetry"]
+protobuf = ["dep:prost", "dep:tonic", "dep:tonic-build"]
+opentelemetry = ["dep:opentelemetry"]
+
+[lints]
+workspace = true
