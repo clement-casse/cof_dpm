@@ -11,6 +11,14 @@ opentelemetry = { workspace = true, optional = true }
 prost = { workspace = true, optional = true }
 rand = "0.9.1"
 regex = "1.11.1"
+sqlx = { workspace = true, features = [
+  "postgres",
+  "runtime-tokio",
+  "macros",
+  "uuid",
+  "chrono",
+  "bigdecimal",
+], optional = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 tonic = { workspace = true, optional = true, features = ["transport"] }
@@ -21,11 +29,14 @@ tonic-build = { workspace = true, optional = true }
 
 [dev-dependencies]
 mockall = "0.13.1"
+testcontainers = "0.24.0"
+testcontainers-modules = { version = "0.12.1", features = ["postgres"] }
 
 [features]
-default = ["protobuf", "opentelemetry"]
+default = ["protobuf", "opentelemetry", "postgres"]
 protobuf = ["dep:prost", "dep:tonic", "dep:tonic-build"]
 opentelemetry = ["dep:opentelemetry"]
+postgres = ["dep:sqlx"]
 
 [lints]
 workspace = true

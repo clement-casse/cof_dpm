@@ -8,3 +8,6 @@ pub mod grpc;
 
 #[cfg(feature = "opentelemetry")]
 pub mod opentelemetry;
+
+#[cfg(feature = "postgres")]
+pub mod postgres;

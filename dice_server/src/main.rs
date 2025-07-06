@@ -1,14 +1,12 @@
 use cof::services::dice;
 use cof::services::dice::implem::opentelemetry::OpenTelemetryMeter;
+use cof::services::dice::implem::postgres::PostgresRepo;
 use opentelemetry::global;
 use opentelemetry_sdk::logs::SdkLoggerProvider;
 use opentelemetry_sdk::metrics::SdkMeterProvider;
 use sqlx::postgres::PgPoolOptions;
 
 use tonic::transport::Server;
-
-mod postgres_repo;
-use postgres_repo::PostgresRepo;
 
 use crate::telemetry::OpenTelemetryMonitor;
 

@@ -26,8 +26,8 @@ pub mod pb {
 
 use pb::dice_api::v1;
 
-/// Wrapper of the [`super::Service`] structure that associates the gRPC methods
-/// of the API to the calls of the [`super::Service`] methods.
+/// Wrapper of the [`Service`] structure that associates the gRPC methods
+/// of the API to the calls of the [`Service`] methods.
 /// This type allows to build a gRPC server that wraps the service.
 ///
 /// This structure can be build from [`Service::into_tonic_service`] method.
@@ -99,7 +99,7 @@ where
     }
 }
 
-/// [`super::DiceService`] implementation for a remote `DiceService` served over gRPC.
+/// [`DiceService`] implementation for a remote `DiceService` served over gRPC.
 /// Instead of calling the service implementation, the `DiceServiceGrpcClient` uses
 /// gRPC to call a remote service.
 pub struct DiceServiceGrpcClient {

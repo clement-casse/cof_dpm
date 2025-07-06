@@ -1,10 +1,10 @@
-use std::sync::Arc;
-
 use anyhow::{Context, anyhow};
-use cof::model::dice::{Dice, RolledDice, RolledDiceSet};
-use cof::services::dice::{DiceHistorySaver, Error, RollId};
 use sqlx::{PgPool, prelude::*};
+use std::sync::Arc;
 use tonic::async_trait;
+
+use crate::model::dice::{Dice, RolledDice, RolledDiceSet};
+use crate::services::dice::{DiceHistorySaver, Error, RollId};
 
 #[derive(Debug)]
 pub struct PostgresRepo {
@@ -12,8 +12,13 @@ pub struct PostgresRepo {
 }
 
 impl PostgresRepo {
+    /// Create a Postgres Resporitory that implements the [`DiceHistorySaver`]
+    ///
+    /// # Errors
+    ///
+    /// The Error cans be a `sqlx::MigrateError` if the migration fails.
     pub async fn new(pg_pool: PgPool) -> Result<Self, Error> {
-        sqlx::migrate!("./migrations")
+        sqlx::migrate!("./src/services/dice/implem/postgres/migrations")
             .run(&pg_pool)
             .await
             .context("Failed to run the Postgres migration when starting the repository")?;
@@ -108,12 +113,13 @@ impl DiceHistorySaver for PostgresRepo {
 mod tests {
     use super::*;
 
-    use cof::model::dice::{Dice, DiceSet};
     use sqlx::PgPool;
     use testcontainers::ContainerAsync;
     use testcontainers_modules::postgres::Postgres;
     use testcontainers_modules::testcontainers::runners::AsyncRunner;
     use uuid::Uuid;
+
+    use crate::model::dice::{Dice, DiceSet};
 
     async fn make_postgres_pool() -> (ContainerAsync<Postgres>, PgPool) {
         // startup the module
