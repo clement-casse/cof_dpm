@@ -1,5 +1,5 @@
 use opentelemetry::{logs::LoggerProvider, metrics::MeterProvider};
-//use opentelemetry_appender_tracing::layer;
+use opentelemetry_appender_tracing::layer;
 use opentelemetry_sdk::{
     Resource,
     logs::{LogExporter, SdkLoggerProvider},
@@ -31,17 +31,29 @@ where
             .with_simple_exporter(log_exporter)
             .build();
 
-        // let filter_otel = EnvFilter::new("info")
-        //     .add_directive("hyper=off".parse().unwrap())
-        //     .add_directive("tonic=off".parse().unwrap())
-        //     .add_directive("h2=off".parse().unwrap())
-        //     .add_directive("reqwest=off".parse().unwrap());
+        // Remove all dependency logs from data send via Opentelemetry
+        let filter_otel_tracing_bridge = EnvFilter::from_default_env()
+            .add_directive("opentelemetry=off".parse().unwrap())
+            .add_directive("hyper=off".parse().unwrap())
+            .add_directive("tonic=off".parse().unwrap())
+            .add_directive("h2=off".parse().unwrap())
+            .add_directive("reqwest=off".parse().unwrap())
+            .add_directive("sqlx=off".parse().unwrap());
 
-        let filter_fmt =
-            EnvFilter::new("info").add_directive("opentelemetry=debug".parse().unwrap());
+        // Force INFO level on dependencies
+        let filter_fmt = EnvFilter::from_default_env()
+            .add_directive("opentelemetry=info".parse().unwrap())
+            .add_directive("hyper=info".parse().unwrap())
+            .add_directive("tonic=info".parse().unwrap())
+            .add_directive("h2=info".parse().unwrap())
+            .add_directive("reqwest=info".parse().unwrap())
+            .add_directive("sqlx=info".parse().unwrap());
 
         tracing_subscriber::registry()
-            //.with(layer::OpenTelemetryTracingBridge::new(&logger_provider).with_filter(filter_otel))
+            .with(
+                layer::OpenTelemetryTracingBridge::new(&logger_provider)
+                    .with_filter(filter_otel_tracing_bridge),
+            )
             .with(tracing_subscriber::fmt::layer().with_filter(filter_fmt))
             .init();
 
