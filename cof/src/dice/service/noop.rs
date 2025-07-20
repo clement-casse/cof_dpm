@@ -2,7 +2,7 @@
 
 use async_trait::async_trait;
 
-use crate::{model::dice::RolledDiceSet, services::dice::DiceMeter};
+use crate::dice::{model::RolledDiceSet, service::DiceMeter};
 
 #[derive(Debug, Clone, Default)]
 pub struct NoopMeter;

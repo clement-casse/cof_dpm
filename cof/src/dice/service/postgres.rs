@@ -3,8 +3,9 @@ use sqlx::{PgPool, prelude::*};
 use std::sync::Arc;
 use tonic::async_trait;
 
-use crate::model::dice::{Dice, RolledDice, RolledDiceSet};
-use crate::services::dice::{DiceHistorySaver, Error, RollId};
+use crate::dice::Error;
+use crate::dice::model::{Dice, RolledDice, RolledDiceSet};
+use crate::dice::service::{DiceHistorySaver, RollId};
 
 #[derive(Debug)]
 pub struct PostgresRepo {
@@ -18,7 +19,7 @@ impl PostgresRepo {
     ///
     /// The Error cans be a `sqlx::MigrateError` if the migration fails.
     pub async fn new(pg_pool: PgPool) -> Result<Self, Error> {
-        sqlx::migrate!("./src/services/dice/implem/postgres/migrations")
+        sqlx::migrate!("./src/dice/service/postgres/migrations")
             .run(&pg_pool)
             .await
             .context("Failed to run the Postgres migration when starting the repository")?;
@@ -119,7 +120,7 @@ mod tests {
     use testcontainers_modules::testcontainers::runners::AsyncRunner;
     use uuid::Uuid;
 
-    use crate::model::dice::{Dice, DiceSet};
+    use crate::dice::model::{Dice, DiceSet};
 
     async fn make_postgres_pool() -> (ContainerAsync<Postgres>, PgPool) {
         // startup the module

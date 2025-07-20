@@ -1,6 +1,7 @@
-use cof::services::dice;
-use cof::services::dice::implem::opentelemetry::OpenTelemetryMeter;
-use cof::services::dice::implem::postgres::PostgresRepo;
+use cof::dice::service as dice;
+use cof::dice::service::opentelemetry::OpenTelemetryMeter;
+use cof::dice::service::postgres::PostgresRepo;
+
 use opentelemetry::global;
 use opentelemetry_sdk::logs::SdkLoggerProvider;
 use opentelemetry_sdk::metrics::SdkMeterProvider;
@@ -42,9 +43,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     log::info!("Starting gRPC server on {addr}");
 
     let reflection_service = tonic_reflection::server::Builder::configure()
-        .register_encoded_file_descriptor_set(
-            dice::implem::grpc::pb::dice_api::v1::FILE_DESCRIPTOR_SET,
-        )
+        .register_encoded_file_descriptor_set(dice::grpc::pb::dice_api::v1::FILE_DESCRIPTOR_SET)
         .build_v1()
         .unwrap();
 

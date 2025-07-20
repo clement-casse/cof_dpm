@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT dice, result FROM dice_rolls WHERE roll_id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "dice",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "result",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "8d6401cce9cf08734df2fd4433a5bcbcf57a3fc32acd3f1b0143e472dc919fe4"
+}

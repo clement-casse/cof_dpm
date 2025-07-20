@@ -6,7 +6,7 @@ use opentelemetry::{
     metrics::{Histogram, Meter},
 };
 
-use crate::{model::dice::RolledDiceSet, services::dice::DiceMeter};
+use crate::dice::{model::RolledDiceSet, service::DiceMeter};
 
 const ROLLED_DICE_HISTOGRAM_NAME: &str = "roll_result";
 const DICE_ATTRIBUTE_KEY: &str = "";

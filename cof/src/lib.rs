@@ -2,5 +2,4 @@
 //! Fantasy* digital party manager. This library does not cover more than
 //! default implementations.
 
-pub mod model;
-pub mod services;
+pub mod dice;

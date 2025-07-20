@@ -1,4 +1,4 @@
-//! Module providing In-Memory Adapter for the [`crate::services::dice::service::DiceHistorySaver`].
+//! Module providing In-Memory Adapter for the [`DiceHistorySaver`].
 //! This adapter main use is for tests and protoyping and does not perform long-lasting storage.
 
 use async_trait::async_trait;
@@ -6,9 +6,9 @@ use std::collections::HashMap;
 use tokio::sync::RwLock;
 use uuid::Uuid;
 
-use crate::model::dice::RolledDiceSet;
-use crate::services::dice::service::DiceHistorySaver;
-use crate::services::dice::{Error, RollId};
+use crate::dice::model::RolledDiceSet;
+use crate::dice::service::DiceHistorySaver;
+use crate::dice::service::{Error, RollId};
 
 #[derive(Debug, Default)]
 pub struct InMemoryDiceHistorySaver {

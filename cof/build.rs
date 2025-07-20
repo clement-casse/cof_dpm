@@ -1,6 +1,9 @@
 use std::{env, path::PathBuf};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // trigger recompilation when a new migration is added
+    println!("cargo:rerun-if-changed=dice/service/postgres/migrations");
+
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 
     tonic_build::configure()

@@ -78,12 +78,13 @@
             cargo-audit
             cargo-binutils
             cargo-nextest
+            cargo-shuttle
             cargo-tarpaulin
             cargo-watch
           ];
 
           RUST_LOG = "trace";
-          DATABASE_URL = "postgres://postgres:welcome@localhost/database";
+          DATABASE_URL = "postgres://postgres:welcome@localhost/database"; # when commented run sqlx in offline mode, maybe ?
         };
       });
 }

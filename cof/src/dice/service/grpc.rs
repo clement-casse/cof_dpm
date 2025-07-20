@@ -5,15 +5,15 @@ use anyhow::Context;
 use log::error;
 use tonic::{Request, Response, Status, transport::Channel};
 
-use crate::model::dice::RolledDiceSet;
-use crate::services::dice::{
+use super::{
     DiceHistorySaver, DiceMeter, DiceService, Error, RollDicesRequest, RollDicesResponse, RollId,
     Service,
 };
+use crate::dice::model::RolledDiceSet;
 
 /// Module that contains the Prost! code generation for the dice API.
 pub mod pb {
-    pub use crate::model::dice::pb::common;
+    pub use crate::dice::model::protobuf::pb::common;
     pub mod dice_api {
         pub mod v1 {
             tonic::include_proto!("cof.dice_api.v1");
@@ -70,14 +70,13 @@ where
 impl From<Error> for Status {
     fn from(value: Error) -> Self {
         match value {
+            Error::DiceUnknown(_) | Error::WayTooManyDices | Error::DiceSetParseError => {
+                Status::invalid_argument("query used a malformed dice, cannot process")
+            }
             Error::NonExistingDiceRoll => {
                 Status::not_found("The dice roll requested cannot be found")
             }
             Error::RollIdParseError => Status::internal("Something went wrong"),
-            Error::FromModel(error) => {
-                error!("Error from model: {error:?}");
-                Status::failed_precondition("")
-            }
             Error::Underlying(error) => {
                 error!("Error from underlying implementation: {error:?}");
                 Status::internal("An internal error occured")
@@ -216,10 +215,9 @@ impl TryFrom<v1::GetDiceRollResponse> for RollDicesResponse {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::model::dice::{Dice, DiceSet};
-    use crate::services::dice::{
-        RollDicesRequest,
-        implem::{in_memory::InMemoryDiceHistorySaver, noop::NoopMeter},
+    use crate::dice::model::{Dice, DiceSet};
+    use crate::dice::service::{
+        RollDicesRequest, in_memory::InMemoryDiceHistorySaver, noop::NoopMeter,
     };
 
     #[test]
