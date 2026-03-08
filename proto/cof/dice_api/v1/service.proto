@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package cof.dice_api.v1;
 
-import "cof/common/dice/v1/dice.proto";
+import "cof/dice_api/v1/dice.proto";
 
 // DiceService
 service DiceService {
@@ -16,7 +16,7 @@ service DiceService {
 // RollDicesRequest
 message RollDicesRequest {
   // dices
-  repeated common.dice.v1.DiceType dices = 1;
+  repeated DiceType dices = 1;
 }
 
 // RollDicesResponse
@@ -24,7 +24,7 @@ message RollDicesResponse {
   // id
   string id = 1;
   // rolled_dices
-  repeated common.dice.v1.RolledDice rolled_dices = 2;
+  repeated RolledDice rolled_dices = 2;
 }
 
 // GetDiceRollRequest
@@ -38,5 +38,5 @@ message GetDiceRollResponse {
   // id
   string id = 1;
   // rolled_dices
-  repeated common.dice.v1.RolledDice rolled_dices = 2;
+  repeated RolledDice rolled_dices = 2;
 }

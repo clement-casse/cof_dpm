@@ -1,0 +1,41 @@
+[package]
+name = "dice_service"
+version.workspace = true
+edition.workspace = true
+
+[features]
+default = ["protobuf", "postgres"]
+protobuf = ["dep:prost", "dep:tonic", "dep:tonic-prost", "dep:tonic-prost-build"]
+postgres = ["dep:sqlx"]
+
+[dependencies]
+anyhow.workspace = true
+async-trait.workspace = true
+prost = { workspace = true, optional = true }
+rand = "0.9"
+regex = "1"
+sqlx = { workspace = true, features = [
+    "postgres",
+    "runtime-tokio",
+    "macros",
+    "uuid",
+    "chrono",
+    "bigdecimal",
+], optional = true }
+thiserror.workspace = true
+tokio.workspace = true
+tonic = { workspace = true, optional = true }
+tonic-prost = { workspace = true, optional = true }
+tracing.workspace = true
+uuid = { workspace = true, features = ["v4", "v7"] }
+
+[build-dependencies]
+tonic-prost-build = { workspace = true, optional = true }
+
+[dev-dependencies]
+mockall.workspace = true
+testcontainers = "0.26"
+testcontainers-modules = { version = "0.14", features = ["postgres"] }
+
+[lints]
+workspace = true

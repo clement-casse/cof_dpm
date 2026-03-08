@@ -1,0 +1,15 @@
+style_edition = "2024"
+merge_derives = true
+reorder_imports = true
+reorder_modules = true
+use_field_init_shorthand = true
+use_small_heuristics = "Off"
+
+## The following are unstable but I hope that one day I will be able to activate them
+group_imports = "StdExternalCrate"
+imports_granularity = "Crate"
+
+wrap_comments = true
+comment_width = 100
+
+format_code_in_doc_comments = true
