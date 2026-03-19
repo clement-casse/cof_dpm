@@ -5,3 +5,5 @@
 
 allow-unwrap-in-tests = true
 allow-unwrap-in-consts = true
+allow-expect-in-tests = true
+allow-expect-in-consts = true
