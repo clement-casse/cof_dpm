@@ -1,12 +1,11 @@
 use anyhow::Context;
 use tonic::transport::Channel;
 
+use super::pb::dice_api::v1;
 use crate::{
     Error, RollId,
     service::{DiceService, RollDicesRequest, RollDicesResponse},
 };
-
-use super::pb::dice_api::v1;
 
 /// [`DiceService`] implementation for a remote `DiceService` served over gRPC.
 /// Instead of calling the service implementation, the `DiceServiceGrpcClient` uses

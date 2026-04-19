@@ -94,6 +94,7 @@ unwrap_used = "deny"
 [workspace.dependencies]
 anyhow = "1"
 async-trait = "0.1"
+async-graphql = "7"
 mockall = "0.14"
 prost = "0.14"
 sqlx = "0.8"

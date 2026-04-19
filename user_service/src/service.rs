@@ -26,9 +26,7 @@ where
     R: repo::Repository,
 {
     pub fn new(repo: R) -> Self {
-        Self {
-            repo,
-        }
+        Self { repo }
     }
 }
 

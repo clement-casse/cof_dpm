@@ -1,3 +1,6 @@
+#[cfg(feature = "graphql")]
+mod graphql;
+#[cfg(feature = "protobuf")]
 pub mod grpc;
 
 use async_trait::async_trait;
@@ -6,7 +9,7 @@ use super::{DiceSet, Error, RollId, RolledDiceSet};
 use crate::repo;
 
 #[async_trait]
-pub trait DiceService {
+pub trait DiceService: Send + Sync {
     /// Roll the provided dices and save the result in the history
     ///
     /// # Errors
@@ -36,9 +39,7 @@ where
     R: repo::DiceHistorySaver,
 {
     pub const fn new(repo: R) -> Self {
-        Self {
-            repo,
-        }
+        Self { repo }
     }
 }
 
@@ -46,7 +47,7 @@ tokio::task_local! {
     pub static CTX: Context;
 }
 
-/// `Context` carries some pieces of information accross the multiple nested
+/// `Context` carries some pieces of information across the multiple nested
 /// function calls.
 #[derive(Debug, Clone, Default)]
 #[non_exhaustive]
@@ -81,10 +82,13 @@ where
     }
 
     async fn get_dice_roll(&self, id: &RollId) -> Result<RollDicesResponse, Error> {
-        self.repo.get_dice_roll(id).await.map(|rolled_dice_set| RollDicesResponse {
-            id: id.clone(),
-            rolled_dice_set,
-        })
+        self.repo
+            .get_dice_roll(id)
+            .await
+            .map(|rolled_dice_set| RollDicesResponse {
+                id: id.clone(),
+                rolled_dice_set,
+            })
     }
 }
 

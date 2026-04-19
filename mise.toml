@@ -2,7 +2,15 @@
 buf = "latest"
 flyctl = "latest"
 protoc = "latest"
-rust = { version = "1.93", components = "rustc,cargo,rustfmt,rust-std,rust-docs,rust-analyzer,clippy,rust-src,llvm-tools" }
+rust = "1.95"
 
 "cargo:cargo-llvm-cov" = "latest"
+"cargo:cargo-nextest" = "latest"
 "cargo:cargo-sort" = "latest"
+"cargo:cargo-tarpaulin" = "latest"
+
+[tasks.format]
+run = "cargo fmt -- --config group_imports=StdExternalCrate --config imports_granularity=Crate --config wrap_comments=true --config comment_width=100 --config format_code_in_doc_comments=true"
+
+[tasks.coverage]
+run = ""

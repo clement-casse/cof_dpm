@@ -1,23 +1,24 @@
 pub mod repo;
 pub mod service;
 
+use std::{collections::BTreeMap, fmt::Display, str::FromStr};
+
 use rand::prelude::*;
 use regex::Regex;
-use std::{collections::BTreeMap, fmt::Display, str::FromStr};
 use thiserror::Error;
 use uuid::Uuid;
 
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("Dice {0} does not exist")]
-    DiceUnknown(String),
+    #[error("Die {0} does not exist")]
+    DieUnknown(String),
 
     #[error(
         "How would a human would decently put this amount of dices in a real table top game ?!?"
     )]
     WayTooManyDices,
 
-    #[error("Cannot parse the diceset")]
+    #[error("Cannot parse the dice set")]
     DiceSetParseError,
 
     #[error("The given dice roll cannot be found")]
@@ -30,7 +31,7 @@ pub enum Error {
     Underlying(#[from] anyhow::Error),
 }
 
-/// The unique identification of a dice roll.
+/// The unique identification of a die roll.
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct RollId(Uuid);
 
@@ -46,9 +47,11 @@ impl RollId {
     ///
     /// # Errors
     ///
-    /// This function will return an error if the provided value cannot be parsed as an UUID.
+    /// This function will return an error if the provided value cannot be parsed as a UUID.
     pub fn parse(value: &str) -> Result<Self, Error> {
-        Uuid::parse_str(value).map_err(|_| Error::RollIdParseError).map(RollId)
+        Uuid::parse_str(value)
+            .map_err(|_| Error::RollIdParseError)
+            .map(RollId)
     }
 
     #[must_use]
@@ -77,7 +80,7 @@ impl Display for RollId {
 
 /// Dice represents the different kinds of Table Top Role Playing Games.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub enum Dice {
+pub enum Die {
     D3 = 3,
     D4 = 4,
     D6 = 6,
@@ -88,26 +91,26 @@ pub enum Dice {
     D100 = 100,
 }
 
-impl Dice {
+impl Die {
     /// returns the total number of side the dice has.
     #[must_use]
     pub const fn side_count(&self) -> u32 {
         *self as u32
     }
 
-    /// rolls the dice and returns a [`RolledDice`] containing the actual dice and
+    /// rolls the dice and returns a [`RolledDie`] containing the actual dice and
     /// the result of the roll being an integer being between 1 and the number of
     /// side the dice has.
     #[must_use]
-    pub fn roll(self) -> RolledDice {
-        RolledDice {
+    pub fn roll(self) -> RolledDie {
+        RolledDie {
             dice: self,
             result: rand::rng().random_range(1..=self.side_count()),
         }
     }
 }
 
-impl TryFrom<&str> for Dice {
+impl TryFrom<&str> for Die {
     type Error = Error;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
@@ -120,27 +123,27 @@ impl TryFrom<&str> for Dice {
             "d12" => Ok(Self::D12),
             "d20" => Ok(Self::D20),
             "d100" => Ok(Self::D100),
-            _ => Err(Error::DiceUnknown(value.to_string())),
+            _ => Err(Error::DieUnknown(value.to_string())),
         }
     }
 }
 
-impl From<Dice> for &str {
-    fn from(value: Dice) -> Self {
+impl From<Die> for &str {
+    fn from(value: Die) -> Self {
         match value {
-            Dice::D3 => "d3",
-            Dice::D4 => "d4",
-            Dice::D6 => "d6",
-            Dice::D8 => "d8",
-            Dice::D10 => "d10",
-            Dice::D12 => "d12",
-            Dice::D20 => "d20",
-            Dice::D100 => "d100",
+            Die::D3 => "d3",
+            Die::D4 => "d4",
+            Die::D6 => "d6",
+            Die::D8 => "d8",
+            Die::D10 => "d10",
+            Die::D12 => "d12",
+            Die::D20 => "d20",
+            Die::D100 => "d100",
         }
     }
 }
 
-impl Display for Dice {
+impl Display for Die {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::D3 => write!(f, "d3"),
@@ -157,23 +160,20 @@ impl Display for Dice {
 
 /// A `RolledDice` represents the outcome of rolling a dice.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub struct RolledDice {
-    pub(crate) dice: Dice,
+pub struct RolledDie {
+    pub(crate) dice: Die,
     pub(crate) result: u32,
 }
 
-impl RolledDice {
+impl RolledDie {
     #[must_use]
-    pub const fn new(dice: Dice, result: u32) -> Self {
-        Self {
-            dice,
-            result,
-        }
+    pub const fn new(dice: Die, result: u32) -> Self {
+        Self { dice, result }
     }
 
-    /// `dice` returns the [`Dice`] that has been rolled.
+    /// `dice` returns the [`Die`] that has been rolled.
     #[must_use]
-    pub const fn dice(&self) -> Dice {
+    pub const fn dice(&self) -> Die {
         self.dice
     }
 
@@ -186,28 +186,28 @@ impl RolledDice {
 
 /// A `DiceSet` represents multiple dices to roll.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct DiceSet(Vec<Dice>);
+pub struct DiceSet(Vec<Die>);
 
 impl DiceSet {
     /// Creates a new `DiceSet` from multiple dices.
-    pub fn new(dices: impl Iterator<Item = Dice>) -> Self {
-        Self(dices.collect::<Vec<Dice>>())
+    pub fn new(dices: impl Iterator<Item = Die>) -> Self {
+        Self(dices.collect::<Vec<Die>>())
     }
 
     /// Returns the lowest possible outcome for this [`DiceSet`] (i.e. all dice roll 1)
-    /// (i.e. the number of the [`Dice`] in the [`DiceSet`]).
+    /// (i.e. the number of the [`Die`] in the [`DiceSet`]).
     ///
     /// # Errors
-    /// [`Error::WayTooManyDices`] is returned when the result cannot be casted in [`u32`].
+    /// [`Error::WayTooManyDices`] is returned when the result cannot be cast in [`u32`].
     pub fn lower_bound(&self) -> Result<u32, Error> {
         u32::try_from(self.0.len()).map_err(|_| Error::WayTooManyDices)
     }
 
     /// Returns the highest possible outcome for this [`DiceSet`] (i.e. all dice roll their
-    /// maximum value) (i.e. the number of the [`Dice`] in the [`DiceSet`]).
+    /// maximum value) (i.e. the number of the [`Die`] in the [`DiceSet`]).
     ///
     /// # Errors
-    /// [`Error::WayTooManyDices`] is returned when the result cannot be casted in [`u32`].
+    /// [`Error::WayTooManyDices`] is returned when the result cannot be cast in [`u32`].
     pub fn upper_bound(&self) -> Result<u32, Error> {
         self.0
             .iter()
@@ -218,22 +218,22 @@ impl DiceSet {
     /// Rolls all the dices in the `DiceSet` and returns a [`RolledDiceSet`].
     ///
     /// # Errors
-    /// [`Error::WayTooManyDices`] is returned when the result cannot be casted in [`u32`].
+    /// [`Error::WayTooManyDices`] is returned when the result cannot be cast in [`u32`].
     pub fn roll(self) -> Result<RolledDiceSet, Error> {
         if self.upper_bound().is_err() {
             return Err(Error::WayTooManyDices);
         }
-        Ok(RolledDiceSet(self.0.into_iter().map(Dice::roll).collect()))
+        Ok(RolledDiceSet(self.0.into_iter().map(Die::roll).collect()))
     }
 
     /// `iter()` returns an iterator of all the `Dice`s in the `DiceSet`.
-    pub fn iter(&self) -> impl Iterator<Item = &Dice> {
+    pub fn iter(&self) -> impl Iterator<Item = &Die> {
         self.0.iter()
     }
 }
 
-impl AsRef<Vec<Dice>> for DiceSet {
-    fn as_ref(&self) -> &Vec<Dice> {
+impl AsRef<Vec<Die>> for DiceSet {
+    fn as_ref(&self) -> &Vec<Die> {
         &self.0
     }
 }
@@ -243,8 +243,8 @@ impl FromStr for DiceSet {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let re = Regex::new(r"(?<number>[0-9]+)?(?<dice>d[0-9]+)")
-            .expect("Cannot instanciate DiceSet parsing regex");
-        let dices: Vec<(u32, Dice)> = re
+            .expect("Cannot instantiate DiceSet parsing regex");
+        let dices: Vec<(u32, Die)> = re
             .captures_iter(s)
             .map(|caps| {
                 let number = caps
@@ -266,7 +266,9 @@ impl FromStr for DiceSet {
             return Err(Error::DiceSetParseError);
         }
 
-        let dice_iter = dices.into_iter().flat_map(|(number, dice)| (0..number).map(move |_| dice));
+        let dice_iter = dices
+            .into_iter()
+            .flat_map(|(number, dice)| (0..number).map(move |_| dice));
 
         Ok(Self::new(dice_iter))
     }
@@ -276,7 +278,10 @@ impl Display for DiceSet {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut dice_counts = BTreeMap::new();
         for d in &self.0 {
-            dice_counts.entry(*d).and_modify(|e| *e += 1).or_insert(1u32);
+            dice_counts
+                .entry(*d)
+                .and_modify(|e| *e += 1)
+                .or_insert(1u32);
         }
         let str_content = dice_counts
             .iter()
@@ -296,12 +301,12 @@ impl Display for DiceSet {
 
 /// A `RolledDiceSet` represents the outcome of rolling all dices in a [`DiceSet`].
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct RolledDiceSet(Vec<RolledDice>);
+pub struct RolledDiceSet(Vec<RolledDie>);
 
 impl RolledDiceSet {
     /// Create a new `RolledDiceSet` out of the given `RolledDice`s.
-    pub fn new(rolled_dices: impl Iterator<Item = RolledDice>) -> Self {
-        Self(rolled_dices.collect::<Vec<RolledDice>>())
+    pub fn new(rolled_dices: impl Iterator<Item = RolledDie>) -> Self {
+        Self(rolled_dices.collect::<Vec<RolledDie>>())
     }
 
     /// `total` returns the sum of all the results of the rolls of each dices in the
@@ -312,13 +317,13 @@ impl RolledDiceSet {
     }
 
     /// `iter` returns an iterator of all the `RolledDice` in the `RolledDiceSet`.
-    pub fn iter(&self) -> impl Iterator<Item = &RolledDice> {
+    pub fn iter(&self) -> impl Iterator<Item = &RolledDie> {
         self.0.iter()
     }
 }
 
-impl AsRef<Vec<RolledDice>> for RolledDiceSet {
-    fn as_ref(&self) -> &Vec<RolledDice> {
+impl AsRef<Vec<RolledDie>> for RolledDiceSet {
+    fn as_ref(&self) -> &Vec<RolledDie> {
         &self.0
     }
 }
@@ -330,14 +335,14 @@ mod tests {
     #[test]
     fn can_count_sides() {
         let test_cases = &[
-            (Dice::D3, 3u32),
-            (Dice::D4, 4),
-            (Dice::D6, 6),
-            (Dice::D8, 8),
-            (Dice::D10, 10),
-            (Dice::D12, 12),
-            (Dice::D20, 20),
-            (Dice::D100, 100),
+            (Die::D3, 3u32),
+            (Die::D4, 4),
+            (Die::D6, 6),
+            (Die::D8, 8),
+            (Die::D10, 10),
+            (Die::D12, 12),
+            (Die::D20, 20),
+            (Die::D100, 100),
         ];
 
         for tc in test_cases {
@@ -351,14 +356,14 @@ mod tests {
         const TIMES_ROLLED: u32 = 1000;
 
         let test_cases = &[
-            (Dice::D3, 3u32),
-            (Dice::D4, 4),
-            (Dice::D6, 6),
-            (Dice::D8, 8),
-            (Dice::D10, 10),
-            (Dice::D12, 12),
-            (Dice::D20, 20),
-            (Dice::D100, 100),
+            (Die::D3, 3u32),
+            (Die::D4, 4),
+            (Die::D6, 6),
+            (Die::D8, 8),
+            (Die::D10, 10),
+            (Die::D12, 12),
+            (Die::D20, 20),
+            (Die::D100, 100),
         ];
 
         for tc in test_cases {
@@ -373,17 +378,17 @@ mod tests {
     #[test]
     fn can_understand_dice_notation() {
         let test_cases = &[
-            ("d3", Dice::D3),
-            ("d4", Dice::D4),
-            ("d6", Dice::D6),
-            ("d8", Dice::D8),
-            ("d10", Dice::D10),
-            ("d12", Dice::D12),
-            ("d20", Dice::D20),
-            ("d100", Dice::D100),
+            ("d3", Die::D3),
+            ("d4", Die::D4),
+            ("d6", Die::D6),
+            ("d8", Die::D8),
+            ("d10", Die::D10),
+            ("d12", Die::D12),
+            ("d20", Die::D20),
+            ("d100", Die::D100),
         ];
         for tc in test_cases {
-            let result = Dice::try_from(tc.0);
+            let result = Die::try_from(tc.0);
             assert!(result.is_ok());
             let this_dice = result.unwrap();
             assert_eq!(this_dice, tc.1);
@@ -394,24 +399,24 @@ mod tests {
 
         let invalid_cases = &["d", "d2", "d13", "dd", "1d20"];
         for tc in invalid_cases {
-            let result = Dice::try_from(*tc);
+            let result = Die::try_from(*tc);
             assert!(result.is_err());
             let this_error = result.unwrap_err();
-            assert!(matches!(this_error, super::Error::DiceUnknown(_)));
+            assert!(matches!(this_error, super::Error::DieUnknown(_)));
         }
     }
 
     #[test]
     fn can_print_dices() {
         let test_cases = &[
-            (Dice::D3, "1d3 + 3"),
-            (Dice::D4, "1d4 + 3"),
-            (Dice::D6, "1d6 + 3"),
-            (Dice::D8, "1d8 + 3"),
-            (Dice::D10, "1d10 + 3"),
-            (Dice::D12, "1d12 + 3"),
-            (Dice::D20, "1d20 + 3"),
-            (Dice::D100, "1d100 + 3"),
+            (Die::D3, "1d3 + 3"),
+            (Die::D4, "1d4 + 3"),
+            (Die::D6, "1d6 + 3"),
+            (Die::D8, "1d8 + 3"),
+            (Die::D10, "1d10 + 3"),
+            (Die::D12, "1d12 + 3"),
+            (Die::D20, "1d20 + 3"),
+            (Die::D100, "1d100 + 3"),
         ];
         for tc in test_cases {
             let formatted_string = format!("1{} + 3", tc.0);
@@ -423,16 +428,16 @@ mod tests {
         let my_dice_set = DiceSet::new(
             vec!["d3", "d100", "d20", "d10", "d100", "d100"]
                 .into_iter()
-                .map(|e| Dice::try_from(e).unwrap()),
+                .map(|e| Die::try_from(e).unwrap()),
         );
 
         assert_eq!(my_dice_set.0.len(), 6);
-        assert_eq!(my_dice_set.0.first(), Some(&Dice::D3));
-        assert_eq!(my_dice_set.0.get(1), Some(&Dice::D100));
-        assert_eq!(my_dice_set.0.get(2), Some(&Dice::D20));
-        assert_eq!(my_dice_set.0.get(3), Some(&Dice::D10));
-        assert_eq!(my_dice_set.0.get(4), Some(&Dice::D100));
-        assert_eq!(my_dice_set.0.get(5), Some(&Dice::D100));
+        assert_eq!(my_dice_set.0.first(), Some(&Die::D3));
+        assert_eq!(my_dice_set.0.get(1), Some(&Die::D100));
+        assert_eq!(my_dice_set.0.get(2), Some(&Die::D20));
+        assert_eq!(my_dice_set.0.get(3), Some(&Die::D10));
+        assert_eq!(my_dice_set.0.get(4), Some(&Die::D100));
+        assert_eq!(my_dice_set.0.get(5), Some(&Die::D100));
     }
 
     #[test]
@@ -440,12 +445,12 @@ mod tests {
         let my_dice_set = DiceSet::new(
             vec!["d3", "d100", "d20", "d10", "d100", "d100"]
                 .into_iter()
-                .map(|e| Dice::try_from(e).unwrap()),
+                .map(|e| Die::try_from(e).unwrap()),
         );
         assert_eq!(my_dice_set.lower_bound().unwrap(), 6);
 
         let my_empty_dice_set =
-            DiceSet::new(vec![].into_iter().map(|e: &str| Dice::try_from(e).unwrap()));
+            DiceSet::new(vec![].into_iter().map(|e: &str| Die::try_from(e).unwrap()));
         assert_eq!(my_empty_dice_set.lower_bound().unwrap(), 0);
     }
 
@@ -454,12 +459,12 @@ mod tests {
         let my_dice_set = DiceSet::new(
             vec!["d3", "d100", "d20", "d10", "d100", "d100"]
                 .into_iter()
-                .map(|e| Dice::try_from(e).unwrap()),
+                .map(|e| Die::try_from(e).unwrap()),
         );
         assert_eq!(my_dice_set.upper_bound().unwrap(), 333);
 
         let my_empty_dice_set =
-            DiceSet::new(vec![].into_iter().map(|e: &str| Dice::try_from(e).unwrap()));
+            DiceSet::new(vec![].into_iter().map(|e: &str| Die::try_from(e).unwrap()));
         assert_eq!(my_empty_dice_set.upper_bound().unwrap(), 0);
     }
 
@@ -468,7 +473,7 @@ mod tests {
         let my_dice_set = DiceSet::new(
             vec!["d3", "d100", "d20", "d10", "d100", "d100"]
                 .into_iter()
-                .map(|e| Dice::try_from(e).unwrap()),
+                .map(|e| Die::try_from(e).unwrap()),
         );
         let result = my_dice_set.clone().roll().unwrap();
         assert_eq!(result.0.len(), 6);
@@ -479,17 +484,23 @@ mod tests {
         );
 
         let my_empty_dice_set =
-            DiceSet::new(vec![].into_iter().map(|e: &str| Dice::try_from(e).unwrap()));
+            DiceSet::new(vec![].into_iter().map(|e: &str| Die::try_from(e).unwrap()));
         assert_eq!(my_empty_dice_set.roll().unwrap().0.len(), 0);
     }
 
     #[test]
     fn can_decode_diceset_from_str() {
         let valid_test_cases = &[
-            ("d100", DiceSet::new(vec![Dice::D100].into_iter())),
-            ("2d10", DiceSet::new(vec![Dice::D10, Dice::D10].into_iter())),
-            ("3d4", DiceSet::new(vec![Dice::D4, Dice::D4, Dice::D4].into_iter())),
-            ("1d100 + 2d20", DiceSet::new(vec![Dice::D100, Dice::D20, Dice::D20].into_iter())),
+            ("d100", DiceSet::new(vec![Die::D100].into_iter())),
+            ("2d10", DiceSet::new(vec![Die::D10, Die::D10].into_iter())),
+            (
+                "3d4",
+                DiceSet::new(vec![Die::D4, Die::D4, Die::D4].into_iter()),
+            ),
+            (
+                "1d100 + 2d20",
+                DiceSet::new(vec![Die::D100, Die::D20, Die::D20].into_iter()),
+            ),
         ];
         for tc in valid_test_cases {
             let ds = DiceSet::from_str(tc.0);
@@ -508,16 +519,27 @@ mod tests {
     #[test]
     fn can_display_diceset() {
         let valid_test_cases = &[
-            (DiceSet::new(vec![Dice::D100].into_iter()), "d100"),
-            (DiceSet::new(vec![Dice::D10, Dice::D10].into_iter()), "2d10"),
-            (DiceSet::new(vec![Dice::D4, Dice::D4, Dice::D4].into_iter()), "3d4"),
-            (DiceSet::new(vec![Dice::D100, Dice::D20, Dice::D20].into_iter()), "d100 + 2d20"),
-            (DiceSet::new(vec![Dice::D20, Dice::D20, Dice::D100].into_iter()), "d100 + 2d20"),
-            (DiceSet::new(vec![Dice::D20, Dice::D100, Dice::D20].into_iter()), "d100 + 2d20"),
+            (DiceSet::new(vec![Die::D100].into_iter()), "d100"),
+            (DiceSet::new(vec![Die::D10, Die::D10].into_iter()), "2d10"),
+            (
+                DiceSet::new(vec![Die::D4, Die::D4, Die::D4].into_iter()),
+                "3d4",
+            ),
+            (
+                DiceSet::new(vec![Die::D100, Die::D20, Die::D20].into_iter()),
+                "d100 + 2d20",
+            ),
+            (
+                DiceSet::new(vec![Die::D20, Die::D20, Die::D100].into_iter()),
+                "d100 + 2d20",
+            ),
+            (
+                DiceSet::new(vec![Die::D20, Die::D100, Die::D20].into_iter()),
+                "d100 + 2d20",
+            ),
             (
                 DiceSet::new(
-                    vec![Dice::D20, Dice::D100, Dice::D20, Dice::D8, Dice::D100, Dice::D20]
-                        .into_iter(),
+                    vec![Die::D20, Die::D100, Die::D20, Die::D8, Die::D100, Die::D20].into_iter(),
                 ),
                 "2d100 + 3d20 + d8",
             ),

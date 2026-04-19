@@ -1,8 +1,7 @@
 # Clippy configuration for the lints activated in Cargo.toml.
 # https://doc.rust-lang.org/clippy/lint_configuration.html
 
-## UNWRAP_USED
-
+# Configuration for unwrap_used and expect_used.
 allow-unwrap-in-tests = true
 allow-unwrap-in-consts = true
 allow-expect-in-tests = true

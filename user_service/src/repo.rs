@@ -1,5 +1,6 @@
-use crate::{Error, Identity, User};
 use async_trait::async_trait;
+
+use crate::{Error, Identity, User};
 
 #[cfg_attr(test, mockall::automock)]
 #[async_trait]

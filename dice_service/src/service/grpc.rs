@@ -12,30 +12,30 @@ pub mod pb {
     }
 }
 
-use anyhow::{Context as _, anyhow};
+use anyhow::{anyhow, Context as _};
 use pb::dice_api::v1;
 
 use crate::{
-    Dice, DiceSet, Error, RollId, RolledDice, RolledDiceSet,
-    service::{RollDicesRequest, RollDicesResponse},
+    service::{RollDicesRequest, RollDicesResponse}, DiceSet, Die, Error, RollId, RolledDiceSet,
+    RolledDie,
 };
 
-impl From<Dice> for v1::DiceType {
-    fn from(value: Dice) -> Self {
+impl From<Die> for v1::DiceType {
+    fn from(value: Die) -> Self {
         match value {
-            Dice::D3 => Self::DiceType3,
-            Dice::D4 => Self::DiceType4,
-            Dice::D6 => Self::DiceType6,
-            Dice::D8 => Self::DiceType8,
-            Dice::D10 => Self::DiceType10,
-            Dice::D12 => Self::DiceType12,
-            Dice::D20 => Self::DiceType20,
-            Dice::D100 => Self::DiceType100,
+            Die::D3 => Self::DiceType3,
+            Die::D4 => Self::DiceType4,
+            Die::D6 => Self::DiceType6,
+            Die::D8 => Self::DiceType8,
+            Die::D10 => Self::DiceType10,
+            Die::D12 => Self::DiceType12,
+            Die::D20 => Self::DiceType20,
+            Die::D100 => Self::DiceType100,
         }
     }
 }
 
-impl TryFrom<v1::DiceType> for Dice {
+impl TryFrom<v1::DiceType> for Die {
     type Error = Error;
 
     fn try_from(value: v1::DiceType) -> Result<Self, Self::Error> {
@@ -48,7 +48,7 @@ impl TryFrom<v1::DiceType> for Dice {
             v1::DiceType::DiceType12 => Ok(Self::D12),
             v1::DiceType::DiceType20 => Ok(Self::D20),
             v1::DiceType::DiceType100 => Ok(Self::D100),
-            v1::DiceType::Unspecified => Err(Self::Error::Underlying(anyhow!(
+            v1::DiceType::Unspecified => Err(Error::Underlying(anyhow!(
                 "the value of the protobuf DiceType was UNSPECIFIED"
             ))),
         }
@@ -65,14 +65,17 @@ impl TryFrom<Vec<v1::DiceType>> for DiceSet {
     type Error = Error;
 
     fn try_from(value: Vec<v1::DiceType>) -> Result<Self, Self::Error> {
-        let encoded_dices = value.into_iter().map(Dice::try_from).collect::<Result<Vec<_>, _>>()?;
+        let encoded_dices = value
+            .into_iter()
+            .map(Die::try_from)
+            .collect::<Result<Vec<_>, _>>()?;
 
         Ok(Self(encoded_dices))
     }
 }
 
-impl From<RolledDice> for v1::RolledDice {
-    fn from(value: RolledDice) -> Self {
+impl From<RolledDie> for v1::RolledDice {
+    fn from(value: RolledDie) -> Self {
         Self {
             dice: v1::DiceType::from(value.dice) as i32,
             result: value.result,
@@ -80,11 +83,11 @@ impl From<RolledDice> for v1::RolledDice {
     }
 }
 
-impl TryFrom<v1::RolledDice> for RolledDice {
+impl TryFrom<v1::RolledDice> for RolledDie {
     type Error = Error;
 
     fn try_from(value: v1::RolledDice) -> Result<Self, Self::Error> {
-        let dice = Dice::try_from(value.dice())?;
+        let dice = Die::try_from(value.dice())?;
         Ok(Self {
             dice,
             result: value.result,
@@ -102,8 +105,10 @@ impl TryFrom<Vec<v1::RolledDice>> for RolledDiceSet {
     type Error = Error;
 
     fn try_from(value: Vec<v1::RolledDice>) -> Result<Self, Self::Error> {
-        let encoded_rolled_dices =
-            value.into_iter().map(RolledDice::try_from).collect::<Result<Vec<_>, _>>()?;
+        let encoded_rolled_dices = value
+            .into_iter()
+            .map(RolledDie::try_from)
+            .collect::<Result<Vec<_>, _>>()?;
 
         Ok(Self(encoded_rolled_dices))
     }
@@ -111,11 +116,13 @@ impl TryFrom<Vec<v1::RolledDice>> for RolledDiceSet {
 
 impl From<RollDicesRequest> for v1::RollDicesRequest {
     fn from(value: RollDicesRequest) -> Self {
-        let dices = value.dice_set.iter().map(|d| v1::DiceType::from(*d) as i32).collect();
+        let dices = value
+            .dice_set
+            .iter()
+            .map(|d| v1::DiceType::from(*d) as i32)
+            .collect();
 
-        Self {
-            dices,
-        }
+        Self { dices }
     }
 }
 
@@ -178,19 +185,19 @@ impl TryFrom<v1::GetDiceRollResponse> for RollDicesResponse {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::{Dice, DiceSet, RolledDice};
+    use crate::{DiceSet, Die, RolledDie};
 
     #[test]
     fn can_encode_dice_protobuf() {
         let test_cases = &[
-            (Dice::D3, v1::DiceType::DiceType3),
-            (Dice::D4, v1::DiceType::DiceType4),
-            (Dice::D6, v1::DiceType::DiceType6),
-            (Dice::D8, v1::DiceType::DiceType8),
-            (Dice::D10, v1::DiceType::DiceType10),
-            (Dice::D12, v1::DiceType::DiceType12),
-            (Dice::D20, v1::DiceType::DiceType20),
-            (Dice::D100, v1::DiceType::DiceType100),
+            (Die::D3, v1::DiceType::DiceType3),
+            (Die::D4, v1::DiceType::DiceType4),
+            (Die::D6, v1::DiceType::DiceType6),
+            (Die::D8, v1::DiceType::DiceType8),
+            (Die::D10, v1::DiceType::DiceType10),
+            (Die::D12, v1::DiceType::DiceType12),
+            (Die::D20, v1::DiceType::DiceType20),
+            (Die::D100, v1::DiceType::DiceType100),
         ];
 
         for tc in test_cases {
@@ -202,28 +209,28 @@ mod test {
     #[test]
     fn can_decode_dice_protobuf() {
         let test_cases = &[
-            (v1::DiceType::DiceType3, Dice::D3),
-            (v1::DiceType::DiceType4, Dice::D4),
-            (v1::DiceType::DiceType6, Dice::D6),
-            (v1::DiceType::DiceType8, Dice::D8),
-            (v1::DiceType::DiceType10, Dice::D10),
-            (v1::DiceType::DiceType12, Dice::D12),
-            (v1::DiceType::DiceType20, Dice::D20),
-            (v1::DiceType::DiceType100, Dice::D100),
+            (v1::DiceType::DiceType3, Die::D3),
+            (v1::DiceType::DiceType4, Die::D4),
+            (v1::DiceType::DiceType6, Die::D6),
+            (v1::DiceType::DiceType8, Die::D8),
+            (v1::DiceType::DiceType10, Die::D10),
+            (v1::DiceType::DiceType12, Die::D12),
+            (v1::DiceType::DiceType20, Die::D20),
+            (v1::DiceType::DiceType100, Die::D100),
         ];
 
         for tc in test_cases {
-            let decoded_dice = Dice::try_from(tc.0).unwrap();
+            let decoded_dice = Die::try_from(tc.0).unwrap();
             assert_eq!(decoded_dice, tc.1);
         }
 
-        let unspecified_dice = Dice::try_from(v1::DiceType::Unspecified);
-        assert!(matches!(unspecified_dice, Err(crate::Error::Underlying(_))));
+        let unspecified_dice = Die::try_from(v1::DiceType::Unspecified);
+        assert!(matches!(unspecified_dice, Err(Error::Underlying(_))));
     }
 
     #[test]
     fn can_encode_rolled_dice_protobuf() {
-        let rolled_dice = Dice::D100.roll();
+        let rolled_dice = Die::D100.roll();
         let proto_rolled_dice = v1::RolledDice::from(rolled_dice);
         assert_eq!(proto_rolled_dice.dice(), v1::DiceType::DiceType100);
         assert_eq!(proto_rolled_dice.result, rolled_dice.result);
@@ -236,15 +243,15 @@ mod test {
             result: 19u32,
         };
 
-        let decoded_rolled_dice = RolledDice::try_from(proto_rolled_dice).unwrap();
+        let decoded_rolled_dice = RolledDie::try_from(proto_rolled_dice).unwrap();
 
-        assert_eq!(decoded_rolled_dice.dice, Dice::D20);
+        assert_eq!(decoded_rolled_dice.dice, Die::D20);
         assert_eq!(decoded_rolled_dice.result, 19);
     }
 
     #[test]
     fn can_encode_and_decode_dice_roll_requests() {
-        let dice_set = DiceSet::new(vec![Dice::D100].into_iter());
+        let dice_set = DiceSet::new(vec![Die::D100].into_iter());
         let req = RollDicesRequest {
             dice_set: dice_set.clone(),
         };
@@ -264,8 +271,8 @@ mod test {
     async fn can_encode_and_decode_dice_roll_response() {
         let roll_dice_resp = RollDicesResponse {
             id: RollId::new(),
-            rolled_dice_set: RolledDiceSet(vec![RolledDice {
-                dice: Dice::D100,
+            rolled_dice_set: RolledDiceSet(vec![RolledDie {
+                dice: Die::D100,
                 result: 98,
             }]),
         };
@@ -273,7 +280,10 @@ mod test {
         let proto_roll_resp = v1::RollDicesResponse::from(roll_dice_resp.clone());
 
         assert_eq!(proto_roll_resp.rolled_dices.len(), 1);
-        assert_eq!(proto_roll_resp.rolled_dices[0].dice(), v1::DiceType::DiceType100);
+        assert_eq!(
+            proto_roll_resp.rolled_dices[0].dice(),
+            v1::DiceType::DiceType100
+        );
         assert_eq!(roll_dice_resp.id.into_string(), proto_roll_resp.id);
         assert_eq!(proto_roll_resp.rolled_dices[0].result, 98);
     }

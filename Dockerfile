@@ -1,4 +1,4 @@
-FROM rust:1.92 AS build-env
+FROM rust:1.95 AS build-env
 
 USER root
 
@@ -57,6 +57,6 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
         cargo build --release --package aio_server; \
     }
 
-FROM gcr.io/distroless/cc-debian12
+FROM gcr.io/distroless/cc-debian13
 COPY --from=builder /usr/src/cof_dpm/target/release/aio_server /
 ENTRYPOINT [ "/aio_server" ]

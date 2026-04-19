@@ -1,8 +1,9 @@
 //! Module providing In-Memory Adapter for the [`DiceHistorySaver`].
-//! This adapter main use is for tests and protoyping and does not perform long-lasting storage.
+//! This adapter main use is for tests and prototyping and does not perform long-lasting storage.
+
+use std::collections::HashMap;
 
 use async_trait::async_trait;
-use std::collections::HashMap;
 use tokio::sync::RwLock;
 use uuid::Uuid;
 

@@ -2,6 +2,7 @@ pub mod repo;
 pub mod service;
 
 use std::{collections::HashMap, fmt::Display};
+
 use thiserror::Error;
 use uuid::Uuid;
 
@@ -38,7 +39,7 @@ impl UserId {
     ///
     /// # Errors
     ///
-    /// This function will return an error if the provided value cannotr be parsed.
+    /// This function will return an error if the provided value cannot be parsed.
     pub fn parse(value: &str) -> Result<Self, Error> {
         Uuid::parse_str(value)
             .map_err(|_| Error::UserIdParseError)

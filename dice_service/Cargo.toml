@@ -4,15 +4,17 @@ version.workspace = true
 edition.workspace = true
 
 [features]
-default = ["protobuf", "postgres"]
+default = ["protobuf", "postgres", "graphql"]
+graphql = ["dep:async-graphql"]
 protobuf = ["dep:prost", "dep:tonic", "dep:tonic-prost", "dep:tonic-prost-build"]
 postgres = ["dep:sqlx"]
 
 [dependencies]
 anyhow.workspace = true
+async-graphql = { workspace = true, optional = true }
 async-trait.workspace = true
 prost = { workspace = true, optional = true }
-rand = "0.9"
+rand = "0.10"
 regex = "1"
 sqlx = { workspace = true, features = [
     "postgres",
@@ -34,8 +36,8 @@ tonic-prost-build = { workspace = true, optional = true }
 
 [dev-dependencies]
 mockall.workspace = true
-testcontainers = "0.26"
-testcontainers-modules = { version = "0.14", features = ["postgres"] }
+testcontainers = "0.27"
+testcontainers-modules = { version = "0.15", features = ["postgres"] }
 
 [lints]
 workspace = true

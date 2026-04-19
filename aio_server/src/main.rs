@@ -1,13 +1,12 @@
 use std::sync::Arc;
 
 use anyhow::Result;
-use tonic::transport::Server;
-use tracing::info;
-
 use dice_service::{
     repo::postgres::PostgresRepo,
     service::{Service, grpc::pb::dice_api},
 };
+use tonic::transport::Server;
+use tracing::info;
 
 #[tokio::main]
 async fn main() -> Result<()> {

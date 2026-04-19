@@ -1,11 +1,10 @@
-use anyhow::{Context, anyhow};
-use sqlx::{PgPool, prelude::*};
 use std::sync::Arc;
+
+use anyhow::{anyhow, Context};
+use sqlx::{prelude::*, PgPool};
 use tonic::async_trait;
 
-use crate::Error;
-use crate::repo::DiceHistorySaver;
-use crate::{Dice, RollId, RolledDice, RolledDiceSet};
+use crate::{repo::DiceHistorySaver, Die, Error, RollId, RolledDiceSet, RolledDie};
 
 #[derive(Debug)]
 pub struct PostgresRepo {
@@ -13,7 +12,7 @@ pub struct PostgresRepo {
 }
 
 impl PostgresRepo {
-    /// Create a Postgres Resporitory that implements the [`DiceHistorySaver`]
+    /// Create a Postgres Repository that implements the [`DiceHistorySaver`]
     ///
     /// # Errors
     ///
@@ -50,11 +49,11 @@ struct RolledDiceDbEntry {
     result: i64,
 }
 
-impl TryFrom<RolledDiceDbEntry> for RolledDice {
+impl TryFrom<RolledDiceDbEntry> for RolledDie {
     type Error = anyhow::Error;
 
     fn try_from(value: RolledDiceDbEntry) -> Result<Self, Self::Error> {
-        let dice = Dice::try_from(value.dice.as_str())
+        let dice = Die::try_from(value.dice.as_str())
             .context("cannot decode the value of the Dice stored in the database")?;
         let result = u32::try_from(value.result)
             .context("cannot decode the value of the result of the roll stored in the database")?;
@@ -117,7 +116,7 @@ impl DiceHistorySaver for PostgresRepo {
 
         let rolled_dices = rolled_dices
             .into_iter()
-            .map(RolledDice::try_from)
+            .map(RolledDie::try_from)
             .collect::<Result<Vec<_>, _>>()?;
 
         Ok(RolledDiceSet::new(rolled_dices.into_iter()))
@@ -126,14 +125,12 @@ impl DiceHistorySaver for PostgresRepo {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     use sqlx::PgPool;
     use testcontainers::ContainerAsync;
-    use testcontainers_modules::postgres::Postgres;
-    use testcontainers_modules::testcontainers::runners::AsyncRunner;
+    use testcontainers_modules::{postgres::Postgres, testcontainers::runners::AsyncRunner};
 
-    use crate::{Dice, DiceSet};
+    use super::*;
+    use crate::{DiceSet, Die};
 
     async fn make_postgres_pool() -> (ContainerAsync<Postgres>, PgPool) {
         // startup the module
@@ -159,10 +156,10 @@ mod tests {
         let (_node, pg_pool) = make_postgres_pool().await;
         let sut = PostgresRepo::new(pg_pool)
             .await
-            .unwrap_or_else(|e| panic!("Cannot instanciate Postgres Repo: {e}"));
+            .unwrap_or_else(|e| panic!("Cannot instantiate Postgres Repo: {e}"));
 
         let id = RollId::new();
-        let rolled_dice_set = DiceSet::new([Dice::D100, Dice::D10].iter().copied())
+        let rolled_dice_set = DiceSet::new([Die::D100, Die::D10].iter().copied())
             .roll()
             .unwrap();
 
